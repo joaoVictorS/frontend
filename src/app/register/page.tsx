@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { cadastroSchema } from '@/utils/validationSchemas';
+import { cadastroSchema } from '@/utils/validationSchemas'; // Validação com Yup
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Input from '@/components/Input';
@@ -10,26 +11,46 @@ import Button from '@/components/Button';
 import { fetchAddressByCep } from '@/services/cepService';
 import { useRouter } from 'next/navigation';
 
+// Interface para os dados do formulário
+interface CadastroFormData {
+  nome: string;
+  email: string;
+  senha: string;
+  confirmarSenha: string;
+  cep: string;
+  rua: string;
+  bairro: string;
+  numero: string;
+  cidade: string;
+  estado: string;
+}
+
 const CadastroPage = () => {
   const router = useRouter();
 
   // Estados para controlar os campos do formulário
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [confirmarSenha, setConfirmarSenha] = useState('');
   const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
   const [bairro, setBairro] = useState('');
-  const [numero, setNumero] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
+  const [numero, setNumero] = useState('');
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Configuração do react-hook-form com yupResolver
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<CadastroFormData>({
+    resolver: yupResolver(cadastroSchema), // Validações Yup
+  });
 
-    if (senha !== confirmarSenha) {
+  // Função de envio do formulário
+  const onSubmit = async (data: CadastroFormData) => {
+    // Verificação manual de senha e confirmação
+    if (data.senha !== data.confirmarSenha) {
       toast.error('As senhas não correspondem!', {
         position: 'top-right',
         autoClose: 3000,
@@ -49,8 +70,9 @@ const CadastroPage = () => {
     });
   };
 
+  // Função de mudança no CEP
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cepValue = e.target.value.replace(/\D/g, '');
+    const cepValue = e.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
     setCep(cepValue);
 
     if (cepValue.length === 8) {
@@ -67,11 +89,17 @@ const CadastroPage = () => {
           return;
         }
 
-        // Atualizando os campos de endereço
+        // Atualiza os campos de endereço com os dados retornados
         setRua(address.logradouro || '');
         setBairro(address.bairro || '');
         setCidade(address.localidade || '');
         setEstado(address.uf || '');
+
+        // Atualiza os valores no react-hook-form
+        setValue('rua', address.logradouro || '');
+        setValue('bairro', address.bairro || '');
+        setValue('cidade', address.localidade || '');
+        setValue('estado', address.uf || '');
       } catch (error) {
         console.error('Erro ao buscar o CEP:', error);
       } finally {
@@ -82,7 +110,7 @@ const CadastroPage = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <ToastContainer />
+      <ToastContainer /> {/* Exibe o Toast */}
 
       <div className="w-full max-w-6xl bg-white shadow-lg rounded-lg flex flex-col md:flex-row overflow-hidden">
         {/* Lado esquerdo - Welcome Back */}
@@ -102,42 +130,44 @@ const CadastroPage = () => {
         {/* Lado direito - Formulário de Cadastro */}
         <div className="w-full md:w-1/2 p-5 md:p-10">
           <h2 className="text-3xl font-bold text-center mb-4 text-[rgb(31 41 55)]">Create Account</h2>
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
             <Input
               label="Nome Completo"
               type="text"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              {...register('nome')}
             />
+            <p className="text-red-500 text-sm">{errors.nome?.message}</p>
+
             <Input
               label="E-mail"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              {...register('email')}
             />
+            <p className="text-red-500 text-sm">{errors.email?.message}</p>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Input
                   label="Senha"
                   type="password"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
+                  {...register('senha')}
                 />
+                <p className="text-red-500 text-sm">{errors.senha?.message}</p>
               </div>
               <div>
                 <Input
                   label="Confirmar Senha"
                   type="password"
-                  value={confirmarSenha}
-                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  {...register('confirmarSenha')}
                 />
+                <p className="text-red-500 text-sm">{errors.confirmarSenha?.message}</p>
               </div>
             </div>
 
             <Input
               label="CEP"
               type="text"
-              value={cep}
+              value={cep} // Controlado pelo estado
               onChange={handleCepChange}
             />
             {loadingCep && <p className="text-sm text-blue-500">Buscando CEP...</p>}
@@ -146,13 +176,13 @@ const CadastroPage = () => {
               <Input
                 label="Rua"
                 type="text"
-                value={rua}
+                value={rua} // Controlado pelo estado
                 onChange={(e) => setRua(e.target.value)}
               />
               <Input
                 label="Bairro"
                 type="text"
-                value={bairro}
+                value={bairro} // Controlado pelo estado
                 onChange={(e) => setBairro(e.target.value)}
               />
             </div>
@@ -161,19 +191,19 @@ const CadastroPage = () => {
               <Input
                 label="Número"
                 type="text"
-                value={numero}
+                value={numero} // Controlado pelo estado
                 onChange={(e) => setNumero(e.target.value)}
               />
               <Input
                 label="Cidade"
                 type="text"
-                value={cidade}
+                value={cidade} // Controlado pelo estado
                 onChange={(e) => setCidade(e.target.value)}
               />
               <Input
                 label="Estado"
                 type="text"
-                value={estado}
+                value={estado} // Controlado pelo estado
                 onChange={(e) => setEstado(e.target.value)}
               />
             </div>

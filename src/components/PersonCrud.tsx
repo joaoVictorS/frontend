@@ -1,94 +1,92 @@
-// PersonCrud.tsx
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store/store';
-import { deletePerson } from '@/store/personSlice';
-import CreatePersonModal from '@/components/modals/CreatePersonModal';
-import UpdatePersonModal from '@/components/modals/UpdatePersonModal';
-import { useState } from 'react';
+import { addPerson, updatePerson, deletePerson } from '@/store/personSlice';
+import PersonModal from '@/components/modals/PersonModal'; // Reutilizando o mesmo modal
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const PersonCrud = () => {
-  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
-  const [isUpdateModalOpen, setUpdateModalOpen] = useState(false);
-  const [personToUpdate, setPersonToUpdate] = useState(null);
-
-  // Pega o estado de `persons` do Redux
-  const persons = useSelector((state: RootState) => state.persons?.persons || []);
+  const persons = useSelector((state: RootState) => state.persons.persons);
   const dispatch = useDispatch();
 
-  const handleOpenUpdateModal = (person) => {
-    setPersonToUpdate(person);
-    setUpdateModalOpen(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPerson, setEditingPerson] = useState(null); // Para armazenar a pessoa que está sendo editada
+
+  const handleOpenModal = (person = null) => {
+    setEditingPerson(person);
+    setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
-    // Remove a pessoa com o ID correspondente
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingPerson(null);
+  };
+
+  const handleAddOrUpdatePerson = (personData) => {
+    if (editingPerson) {
+      dispatch(updatePerson(personData));
+      toast.success('Pessoa atualizada com sucesso!');
+    } else {
+      dispatch(addPerson(personData));
+      toast.success('Pessoa criada com sucesso!');
+    }
+    handleCloseModal();
+  };
+
+  const handleDeletePerson = (id) => {
     dispatch(deletePerson(id));
+    toast.success('Pessoa excluída com sucesso!');
   };
 
   return (
     <div>
-      <div className="flex justify-between mb-4">
-        <h1 className="text-2xl font-bold">CRUD de Pessoas</h1>
-        <button
-          onClick={() => setCreateModalOpen(true)}
-          className="bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600"
-        >
-          Adicionar Pessoa
-        </button>
-      </div>
+      <ToastContainer />
+      <h1 className="text-2xl font-bold mb-4">Gerenciamento de Pessoas</h1>
+      <button
+        className="bg-blue-500 text-white py-2 px-4 rounded mb-4"
+        onClick={() => handleOpenModal()}
+      >
+        Adicionar Pessoa
+      </button>
 
-      <table className="min-w-full bg-white">
+      <table className="min-w-full bg-white border">
         <thead>
           <tr>
-            <th className="py-2">Nome</th>
-            <th className="py-2">Email</th>
-            <th className="py-2">Endereço</th>
-            <th className="py-2">Ações</th>
+            <th className="border px-4 py-2">Nome</th>
+            <th className="border px-4 py-2">Email</th>
+            <th className="border px-4 py-2">Ações</th>
           </tr>
         </thead>
         <tbody>
-          {persons.length > 0 ? (
-            persons.map((person) => (
-              <tr key={person.id}>
-                <td className="border px-4 py-2">{person.name}</td>
-                <td className="border px-4 py-2">{person.email}</td>
-                <td className="border px-4 py-2">{person.address}</td>
-                <td className="border px-4 py-2 flex justify-around">
-                  <button
-                    onClick={() => handleOpenUpdateModal(person)}
-                    className="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => handleDelete(person.id)} // Agora o ID correto é passado
-                    className="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600"
-                  >
-                    Excluir
-                  </button>
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={4} className="text-center py-4">
-                Nenhuma pessoa encontrada.
+          {persons.map((person) => (
+            <tr key={person.id}>
+              <td className="border px-4 py-2">{person.name}</td>
+              <td className="border px-4 py-2">{person.email}</td>
+              <td className="border px-4 py-2">
+                <button
+                  className="bg-yellow-500 text-white py-1 px-3 rounded mr-2"
+                  onClick={() => handleOpenModal(person)}
+                >
+                  Editar
+                </button>
+                <button
+                  className="bg-red-500 text-white py-1 px-3 rounded"
+                  onClick={() => handleDeletePerson(person.id)}
+                >
+                  Excluir
+                </button>
               </td>
             </tr>
-          )}
+          ))}
         </tbody>
       </table>
 
-      {/* Modais de criação e atualização */}
-      <CreatePersonModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-      />
-      {personToUpdate && (
-        <UpdatePersonModal
-          isOpen={isUpdateModalOpen}
-          onClose={() => setUpdateModalOpen(false)}
-          person={personToUpdate}
+      {isModalOpen && (
+        <PersonModal
+          person={editingPerson}
+          onClose={handleCloseModal}
+          onSave={handleAddOrUpdatePerson}
         />
       )}
     </div>
