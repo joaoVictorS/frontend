@@ -1,20 +1,34 @@
+"use client";
+
+import { useSession, signOut } from 'next-auth/react';
+import Link from 'next/link';
+
 const Header = () => {
-    return (
-      <header className="bg-blue-500 text-white py-4">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Meu App</h1>
-          <nav>
-            <ul className="flex space-x-4">
-              <li><a href="/home" className="hover:underline">Home</a></li>
-              <li><a href="/register" className="hover:underline">Cadastro</a></li>
-              <li><a href="/login" className="hover:underline">Login</a></li>
-              <li><a href="/recuperacao" className="hover:underline">Recuperação de Senha</a></li>
-            </ul>
-          </nav>
+  const { data: session } = useSession(); // Obtém a sessão atual
+
+  return (
+    <header className="bg-gray-800 p-4 text-white flex justify-between items-center">
+      <Link href="/">
+        <h1 className="text-lg font-bold">Genesys</h1>
+      </Link>
+
+      {session ? (
+        <div className="flex items-center gap-4">
+          <p>Bem-vindo, {session.user?.name}!</p>
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })} // Realiza o logout e redireciona para /login
+            className="bg-red-500 hover:bg-red-600 text-white py-1 px-4 rounded"
+          >
+            Logout
+          </button>
         </div>
-      </header>
-    );
-  };
-  
-  export default Header;
-  
+      ) : (
+        <Link href="/login" className="text-white">
+          Login
+        </Link>
+      )}
+    </header>
+  );
+};
+
+export default Header;

@@ -1,36 +1,30 @@
 "use client";
 
-import Button from '@/components/Button';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import PersonCrud from '@/components/PersonCrud'; // Importa o CRUD de pessoas
 
-const Home = () => {
-  const users = [
-    { nome: 'João', email: 'joao@email.com', endereco: 'Rua A, 123, Cidade B, Estado C' },
-    { nome: 'Maria', email: 'maria@email.com', endereco: 'Rua X, 456, Cidade Y, Estado Z' },
-  ];
+const HomePage = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // Se o usuário não está autenticado, redireciona para /login
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.replace('/login');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return <p>Carregando...</p>;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto mt-10">
-      <h1 className="text-2xl font-bold mb-5">Lista de Usuários</h1>
-      <table className="min-w-full table-auto border-collapse">
-        <thead>
-          <tr>
-            <th className="border px-4 py-2">Nome</th>
-            <th className="border px-4 py-2">E-mail</th>
-            <th className="border px-4 py-2">Endereço</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user, index) => (
-            <tr key={index}>
-              <td className="border px-4 py-2">{user.nome}</td>
-              <td className="border px-4 py-2">{user.email}</td>
-              <td className="border px-4 py-2">{user.endereco}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="container mx-auto p-4">
+      <PersonCrud />
     </div>
   );
 };
 
-export default Home;
+export default HomePage;

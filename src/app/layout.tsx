@@ -1,6 +1,7 @@
+// src/app/layout.tsx
 import './globals.css';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import Providers from '@/components/Providers'; // Importa o Providers para gerenciar Redux e Session
+import ClientWrapper from '@/components/ClientWrapper';
 
 export const metadata = {
   title: 'Meu App',
@@ -15,11 +16,11 @@ export default function RootLayout({
   return (
     <html lang="pt-br">
       <body className="flex flex-col min-h-screen">
-        <Header /> {/* Header aparece em todas as páginas */}
-        <main className="flex-grow container mx-auto py-6">
-          {children}
-        </main>
-        <Footer /> {/* Footer aparece em todas as páginas */}
+        <Providers>
+          <ClientWrapper>
+            {children}
+          </ClientWrapper>
+        </Providers>
       </body>
     </html>
   );

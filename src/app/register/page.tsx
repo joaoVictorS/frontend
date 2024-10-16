@@ -1,71 +1,79 @@
 "use client";
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { cadastroSchema } from '@/utils/validationSchemas';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
 import { fetchAddressByCep } from '@/services/cepService';
+import { useRouter } from 'next/navigation';
 
-interface CadastroFormData {
-  nome: string;
-  email: string;
-  senha: string;
-  confirmarSenha: string;
-  cep: string;
-  rua: string;
-  bairro: string;
-  numero: string;
-  cidade: string;
-  estado: string;
-}
+const CadastroPage = () => {
+  const router = useRouter();
 
-const Cadastro = () => {
-  const [cep, setCep] = useState("");
-  const [rua, setRua] = useState("");
-  const [bairro, setBairro] = useState("");
-  const [cidade, setCidade] = useState("");
-  const [estado, setEstado] = useState("");
+  // Estados para controlar os campos do formulário
+  const [nome, setNome] = useState('');
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [cep, setCep] = useState('');
+  const [rua, setRua] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [numero, setNumero] = useState('');
+  const [cidade, setCidade] = useState('');
+  const [estado, setEstado] = useState('');
   const [loadingCep, setLoadingCep] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<CadastroFormData>({
-    resolver: yupResolver(cadastroSchema),
-  });
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const onSubmit = (data: CadastroFormData) => {
-    console.log("Dados do cadastro:", data);
+    if (senha !== confirmarSenha) {
+      toast.error('As senhas não correspondem!', {
+        position: 'top-right',
+        autoClose: 3000,
+        theme: 'colored',
+      });
+      return;
+    }
+
+    toast.success('Cadastro realizado com sucesso!', {
+      position: 'top-right',
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      theme: 'colored',
+    });
   };
 
   const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const cepValue = e.target.value.replace(/\D/g, '');  // Remove caracteres não numéricos
-    setCep(cepValue);  // Atualize o estado local do CEP
+    const cepValue = e.target.value.replace(/\D/g, '');
+    setCep(cepValue);
 
-    if (cepValue.length === 8) {  // Verifica se o CEP tem 8 dígitos
+    if (cepValue.length === 8) {
       try {
         setLoadingCep(true);
         const address = await fetchAddressByCep(cepValue);
-        
+
         if (address.erro) {
-          console.error("CEP inválido");
+          toast.error('CEP inválido!', {
+            position: 'top-right',
+            autoClose: 3000,
+            theme: 'colored',
+          });
           return;
         }
 
-        // Atualiza os estados locais dos campos de endereço
+        // Atualizando os campos de endereço
         setRua(address.logradouro || '');
         setBairro(address.bairro || '');
         setCidade(address.localidade || '');
         setEstado(address.uf || '');
-
-        // Sincroniza os campos com o react-hook-form
-        setValue('rua', address.logradouro || '');
-        setValue('bairro', address.bairro || '');
-        setValue('cidade', address.localidade || '');
-        setValue('estado', address.uf || '');
-
-        console.log("Campos de endereço atualizados com sucesso!");
       } catch (error) {
-        console.error("Erro ao buscar o CEP:", error);
+        console.error('Erro ao buscar o CEP:', error);
       } finally {
         setLoadingCep(false);
       }
@@ -73,112 +81,116 @@ const Cadastro = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-md">
-      <h1 className="text-3xl font-bold mb-6 text-center">Cadastro</h1>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Nome Completo */}
-        <div>
-          <Input label="Nome Completo" type="text" name="nome" {...register('nome')}  />
-          <p className="text-red-500 text-sm">{errors.nome?.message}</p>
+    <div className="flex justify-center items-center min-h-screen">
+      <ToastContainer />
+
+      <div className="w-full max-w-6xl bg-white shadow-lg rounded-lg flex flex-col md:flex-row overflow-hidden">
+        {/* Lado esquerdo - Welcome Back */}
+        <div className="hidden md:flex md:w-1/2 bg-[var(--color-default-gft)] text-white p-8 items-center justify-center flex-col">
+          <h1 className="text-4xl font-bold mb-4">Welcome Back!</h1>
+          <p className="mb-6 text-center">
+            To keep connected with us, please login with your personal info
+          </p>
+          <button
+            className="border border-white py-2 px-6 rounded-full hover:bg-white hover:text-[var(--color-default-gft)] transition"
+            onClick={() => router.push('/login')}
+          >
+            SIGN IN
+          </button>
         </div>
 
-        {/* E-mail e Senha */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Input label="E-mail" type="email" name="email" {...register('email')} />
-            <p className="text-red-500 text-sm">{errors.email?.message}</p>
-          </div>
-          <div>
-            <Input label="Senha" type="password" name="senha" {...register('senha')} />
-            <p className="text-red-500 text-sm">{errors.senha?.message}</p>
-          </div>
-        </div>
+        {/* Lado direito - Formulário de Cadastro */}
+        <div className="w-full md:w-1/2 p-5 md:p-10">
+          <h2 className="text-3xl font-bold text-center mb-4 text-[rgb(31 41 55)]">Create Account</h2>
+          <form onSubmit={onSubmit} className="space-y-3">
+            <Input
+              label="Nome Completo"
+              type="text"
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+            <Input
+              label="E-mail"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Input
+                  label="Senha"
+                  type="password"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                />
+              </div>
+              <div>
+                <Input
+                  label="Confirmar Senha"
+                  type="password"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                />
+              </div>
+            </div>
 
-        {/* Confirmar Senha */}
-        <div>
-          <Input label="Confirmar Senha" type="password" name="confirmarSenha" {...register('confirmarSenha')} />
-          <p className="text-red-500 text-sm">{errors.confirmarSenha?.message}</p>
-        </div>
-
-        {/* Endereço (CEP, Rua, Número) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
             <Input
               label="CEP"
               type="text"
-              name="cep"
-              value={cep}  // Valor controlado localmente
-              onChange={handleCepChange}  // Chama handleCepChange ao digitar no campo de CEP
+              value={cep}
+              onChange={handleCepChange}
             />
-            <p className="text-red-500 text-sm">{errors.cep?.message}</p>
             {loadingCep && <p className="text-sm text-blue-500">Buscando CEP...</p>}
-          </div>
-          <div className="md:col-span-2">
-            <Input
-              label="Rua"
-              type="text"
-              name="rua"
-              value={rua}  // Valor controlado localmente
-              disabled  // Campo desabilitado, apenas a API pode alterá-lo
-            />
-            <p className="text-red-500 text-sm">{errors.rua?.message}</p>
-          </div>
-        </div>
 
-        {/* Bairro e Número */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Input
-              label="Bairro"
-              type="text"
-              name="bairro"
-              value={bairro}  // Valor controlado localmente
-              disabled  // Campo desabilitado
-            />
-            <p className="text-red-500 text-sm">{errors.bairro?.message}</p>
-          </div>
-          <div>
-            <Input
-              label="Número"
-              type="text"
-              name="numero"
-              {...register('numero')}  // O número é editável
-            />
-            <p className="text-red-500 text-sm">{errors.numero?.message}</p>
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="Rua"
+                type="text"
+                value={rua}
+                onChange={(e) => setRua(e.target.value)}
+              />
+              <Input
+                label="Bairro"
+                type="text"
+                value={bairro}
+                onChange={(e) => setBairro(e.target.value)}
+              />
+            </div>
 
-        {/* Cidade e Estado */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Input
-              label="Cidade"
-              type="text"
-              name="cidade"
-              value={cidade}  // Valor controlado localmente
-              disabled  // Campo desabilitado
-            />
-            <p className="text-red-500 text-sm">{errors.cidade?.message}</p>
-          </div>
-          <div>
-            <Input
-              label="Estado"
-              type="text"
-              name="estado"
-              value={estado}  // Valor controlado localmente
-              disabled  // Campo desabilitado
-            />
-            <p className="text-red-500 text-sm">{errors.estado?.message}</p>
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Input
+                label="Número"
+                type="text"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+              />
+              <Input
+                label="Cidade"
+                type="text"
+                value={cidade}
+                onChange={(e) => setCidade(e.target.value)}
+              />
+              <Input
+                label="Estado"
+                type="text"
+                value={estado}
+                onChange={(e) => setEstado(e.target.value)}
+              />
+            </div>
 
-        {/* Botão de Enviar */}
-        <div className="flex justify-center">
-          <Button type="submit" className="w-full md:w-1/2">Cadastrar</Button>
+            <div className="flex justify-center">
+              <Button
+                type="submit"
+                className="w-full md:w-96 bg-[rgb(31 41 55)] text-white hover:bg-opacity-90 transition-opacity"
+              >
+                Sign Up
+              </Button>
+            </div>
+          </form>
         </div>
-      </form>
+      </div>
     </div>
   );
 };
 
-export default Cadastro;
+export default CadastroPage;

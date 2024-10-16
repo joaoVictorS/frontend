@@ -2,14 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Definição de variáveis globais de cores */
+:root {
+  --color-default-white: #FFFFFF;
+  --color-default-gft: rgb(31 41 55); /* Verde usado no exemplo */
+  --color-table-header: #ECECEC;
+  --color-background: #EFF3FD;
+  --color-table-rows: #F0FFFC;
+}
+
+* {
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  @apply bg-gray-100 text-gray-900;
+  font-family: 'Poppins', sans-serif;
+  background: repeating-radial-gradient(
+    circle at 90%, 
+    var(--color-background), 
+    var(--color-background) 38px, 
+    var(--color-default-white) 20px, 
+    var(--color-default-white) 39px
+  ) !important;
 }
 
-h1 {
-  @apply text-center text-3xl font-bold;
-}
-
-form {
-  @apply space-y-6;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
 }
