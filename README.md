@@ -67,7 +67,7 @@ Para que a autenticação com **NextAuth.js** funcione corretamente, você preci
 
 openssl  rand  -base64  32
 
-inserir  o  conteudo  acima  em  "NEXTAUTH_SECRET"
+inserir  o  conteudo  acima  em  "NEXTAUTH_SECRET" dentro do .env
 
 NEXTAUTH_SECRET=your_generated_secret_here
 
