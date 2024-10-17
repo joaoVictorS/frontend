@@ -1,18 +1,21 @@
-import React from 'react';
+// src/components/Button.tsx
+import { FC, ReactNode } from 'react';
 
 interface ButtonProps {
-  children: React.ReactNode;
-  onClick?: () => void;
-  type?: 'button' | 'submit';
+  type: 'submit' | 'button';
   className?: string;
+  disabled?: boolean;
+  children: ReactNode;
+  onClick?: () => void;
 }
 
-const Button: React.FC<ButtonProps> = ({ children, onClick, type = 'button', className = '' }) => {
+const Button: FC<ButtonProps> = ({ type, className, disabled, children, onClick }) => {
   return (
     <button
-      onClick={onClick}
       type={type}
-      className={`bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 ${className}`}
+      className={`${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''} py-2 px-4 bg-blue-600 text-white rounded`}
+      disabled={disabled}
+      onClick={onClick}
     >
       {children}
     </button>

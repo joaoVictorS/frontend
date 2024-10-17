@@ -17,7 +17,7 @@ const cadastroSchema = yup.object().shape({
   senha: yup.string().min(6, 'A senha deve ter no mínimo 6 caracteres').required('Senha é obrigatória'),
   confirmarSenha: yup
     .string()
-    .oneOf([yup.ref('senha'), null], 'As senhas devem coincidir')
+    .oneOf([yup.ref('senha'), undefined], 'As senhas devem coincidir')
     .required('Confirmação de senha é obrigatória'),
   cep: yup.string().required('CEP é obrigatório'),
   numero: yup.string().required('Número é obrigatório'),

@@ -10,27 +10,29 @@ const handler = NextAuth({
         password: { label: 'Password', type: 'password' },
       },
       authorize: async (credentials) => {
-        // Validação do usuário não precisa ser feita aqui. Deixe o cliente cuidar disso.
-        // Apenas retorne um valor estático ou null se não passar, para o NextAuth funcionar
-        return { id: 1, email: credentials?.email }; // Retornar um mock válido
+        if (credentials) {
+          return { id: '1', email: credentials.email }; // 'id' como string
+        }
+        return null;
       },
     }),
   ],
   pages: {
-    signIn: '/login', // Página de login personalizada
+    signIn: '/login',
   },
   session: {
-    strategy: 'jwt', // Sessão gerenciada com JWT
+    strategy: 'jwt',
   },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id; // Adiciona ID do usuário ao token
+        token.id = user.id; // Adiciona `id` ao token
       }
       return token;
     },
     async session({ session, token }) {
-      session.id = token.id; // Passa o ID do token para a sessão
+      // Converte `token.id` para string se existir
+      session.id = token.id as string; // Usa o campo `id` no token e força a tipagem para string
       return session;
     },
   },

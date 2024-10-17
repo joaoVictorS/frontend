@@ -6,15 +6,14 @@ import Button from '@/components/Button';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Lógica para recuperação de senha separada do componente de interface
+// Lógica para recuperação de senha
 const handlePasswordRecovery = (email: string) => {
-  // Simulação de envio de recuperação de senha
   console.log(`Recuperação de senha para: ${email}`);
   toast.success('E-mail de recuperação enviado com sucesso!');
 };
 
 const Recuperacao = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm();
+  const { register, handleSubmit, formState: { errors } } = useForm<{ email: string }>();
 
   const onSubmit = (data: { email: string }) => {
     handlePasswordRecovery(data.email);
@@ -28,16 +27,15 @@ const Recuperacao = () => {
         <h1 className="text-3xl font-bold mb-6 text-center">Recuperar Senha</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Campo de E-mail */}
           <Input
             label="E-mail"
             type="email"
             {...register('email', { required: 'E-mail é obrigatório' })}
             placeholder="Digite seu e-mail"
+            error={errors.email?.message} // Mostrando o erro caso ocorra
           />
           <p className="text-red-500 text-sm">{errors.email?.message}</p>
 
-          {/* Botão Enviar */}
           <Button type="submit" className="w-full bg-blue-500 text-white hover:bg-blue-600 transition">
             Enviar
           </Button>

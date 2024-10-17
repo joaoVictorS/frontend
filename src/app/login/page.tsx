@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Input from '@/components/Input';
-import Button from '@/components/Button';
+import Button from '@/components/Button'; // Componente Button
 import { authService } from '@/services/authService';
-import { LoginFormData, LoginState } from '@/interfaces/auth';  // Importando as interfaces
+import { LoginState } from '@/interfaces/auth';  // Importando as interfaces
 
 const LoginPage = () => {
   // Estado do formulário de login com a interface LoginState
@@ -108,7 +108,7 @@ const LoginPage = () => {
             <div className="flex justify-center">
               <Button
                 type="submit"
-                className="w-full bg-[rgb(31 41 55)] text-white hover:bg-opacity-90 transition-opacity"
+                className="w-full bg-[rgb(31 41 55)] text-white"
                 disabled={formData.loading}
               >
                 {formData.loading ? 'Entrando...' : 'Login'}
