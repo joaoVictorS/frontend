@@ -8,7 +8,7 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
   const pathname = usePathname();
 
   // Verifica se estamos nas rotas públicas (login ou register)
-  const isPublicPage = pathname === '/login' || pathname === '/register';
+  const isPublicPage = pathname === '/login' || pathname === '/register' || pathname === '/reset-password';
 
   return (
     <>

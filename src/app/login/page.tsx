@@ -1,43 +1,44 @@
 "use client";
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Input from '@/components/Input';
 import Button from '@/components/Button';
+import { authService } from '@/services/authService';
+import { LoginFormData, LoginState } from '@/interfaces/auth';  // Importando as interfaces
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+  // Estado do formulário de login com a interface LoginState
+  const [formData, setFormData] = useState<LoginState>({
+    email: '',
+    password: '',
+    loading: false,
+  });
+
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Função para lidar com as alterações de input
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value, // Atualiza o campo correto (email ou password)
+    }));
+  };
+
+  // Função para lidar com o envio do formulário de login
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
+    if (formData.loading) return; // Evitar múltiplos cliques
 
-    const res = await signIn('credentials', {
-      redirect: false,
-      email,
-      password,
-    });
+    setFormData((prev) => ({ ...prev, loading: true }));
 
-    setLoading(false);
+    try {
+      const userName = await authService.login(formData.email, formData.password);
 
-    if (res?.error) {
-      toast.error('Login falhou! Verifique suas credenciais.', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        theme: "colored",
-      });
-    } else {
-      toast.success('Login bem-sucedido!', {
+      toast.success(`Bem-vindo, ${userName}!`, {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -50,15 +51,27 @@ const LoginPage = () => {
       setTimeout(() => {
         router.push('/home');
       }, 2000);
+    } catch (error: unknown) {
+      const errorMessage = (error instanceof Error) ? error.message : 'Erro ao fazer login!';
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
+    } finally {
+      setFormData((prev) => ({ ...prev, loading: false }));
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[var(--color-background)]">
+    <div className="flex items-center justify-center min-h-screen">
       <ToastContainer />
 
       <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg flex flex-col md:flex-row overflow-hidden">
-        {/* Lado esquerdo - Create Account */}
         <div className="hidden md:flex md:w-1/2 bg-[var(--color-default-gft)] text-white p-10 items-center justify-center flex-col">
           <h1 className="text-4xl font-bold mb-4">Create Account!</h1>
           <p className="mb-6 text-center">
@@ -72,22 +85,23 @@ const LoginPage = () => {
           </button>
         </div>
 
-        {/* Lado direito - Formulário de Login */}
         <div className="w-full md:w-1/2 p-10">
           <h2 className="text-3xl font-bold text-center mb-6 text-[rgb(31 41 55)]">Welcome Back</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="E-mail"
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
               required
             />
             <Input
               label="Senha"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
               required
             />
 
@@ -95,14 +109,22 @@ const LoginPage = () => {
               <Button
                 type="submit"
                 className="w-full bg-[rgb(31 41 55)] text-white hover:bg-opacity-90 transition-opacity"
-                disabled={loading}
+                disabled={formData.loading}
               >
-                {loading ? 'Entrando...' : 'Login'}
+                {formData.loading ? 'Entrando...' : 'Login'}
               </Button>
+            </div>
+
+            <div className="text-center mt-4">
+              <span
+                className="text-[rgb(31 41 55)] hover:underline cursor-pointer"
+                onClick={() => router.push('/reset-password')}
+              >
+                Esqueceu a senha?
+              </span>
             </div>
           </form>
 
-          {/* Link para Criar Conta */}
           <div className="text-center mt-4">
             <span className="text-gray-500">Don't have an account?</span>
             <button

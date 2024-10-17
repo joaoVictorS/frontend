@@ -8,27 +8,28 @@ export async function middleware(req: NextRequest) {
 
   const { pathname } = req.nextUrl;
 
-  // Permitir o acesso às rotas públicas (login, register, API)
+  // Permitir o acesso livre às rotas públicas como login, register, reset-password e rotas da API de autenticação
   if (
-    pathname.includes('/api/auth') || // Permitir rotas de autenticação da API
-    pathname === '/login' || // Permitir a página de login
-    pathname === '/register' // Permitir a página de registro
+    pathname.includes('/api/auth') || 
+    pathname === '/login' || 
+    pathname === '/register' || 
+    pathname === '/reset-password' // Adicionar rota de recuperação de senha como rota pública
   ) {
-    return NextResponse.next();
+    return NextResponse.next(); // Permitir a requisição
   }
 
-  // Redirecionar para login se o token não for encontrado e estiver tentando acessar uma rota protegida
+  // Se o token não existir, redirecionar para o login
   if (!token) {
     return NextResponse.redirect(new URL('/login', req.url));
   }
 
-  // Permitir o acesso às outras rotas
+  // Permitir o acesso às outras rotas protegidas
   return NextResponse.next();
 }
 
-// Define as rotas protegidas
+// Definir as rotas que o middleware deve proteger
 export const config = {
   matcher: [
-    '/((?!login|register|api|_next/static|_next/image|favicon.ico).*)', // Proteger todas as rotas exceto login, register e as rotas públicas
+    '/((?!login|register|reset-password|api|_next/static|_next/image|favicon.ico).*)', // Proteger todas as rotas exceto login, register, reset-password e rotas públicas
   ],
 };
